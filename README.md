@@ -42,10 +42,52 @@ Before using the API, do the following steps:
    
    This will display the redirect URI in the execution log panel. This URI
    should be of the form
-   `https://script.google.com/macros/d/<script-id>/usercallback`.
+   `https://script.google.com/macros/d/<script-id>/usercallback`
 
 4. [Create a new app](https://dev.netatmo.com/apps/) in your Netatmo
    developer account.  You need to fill the required parameter as well
    as the redirect URI.
+   
+### Using the API
+
+Here is a minimum code snippet illustrating how to use the API:
+
+```js
+function getNetatmoService() {
+  return NetatmoLib.createService({
+    client_id: CLIENT_ID,
+    client_secret: CLIENT_SECRET,
+    scope: 'read_magellan'
+  });
+}
+
+function testNetatmoApi() {
+  let service = getNetatmoService();
+  if (service.hasAccess()) {
+    let response = service.homesData();
+    Logger.log(JSON.stringify(response, null, 2));
+  } else {
+    Logger.log('Please follow this link to authorize the Netatmo API:\n' + service.getAuthorizationUrl());
+  }
+}
+
+function authCallback(request) {
+  let service = getNetatmoService();
+  let isAuthorized = service.handleCallback(request);
+  return HtmlService.createHtmlOutput((isAuthorized ? 'Success!' : 'Denied.') + ' You can close this tab.');
+}
+
+function reset() {
+  let service = getNetatmoService();
+  service.reset();
+}
+```
+
+To test this example, you should run twice the function `testNetatmoApi`
+in the script editor. At the first run, you will see an URL in the execution
+log. Visit this URL with your web browser to grant access to the Netatmo
+API. At the second run, you will the the JSON output returned by the API
+call.
+
 
 
