@@ -87,8 +87,8 @@ function getNetatmoService() {
 
 function testNetatmoApi() {
   let service = getNetatmoService();
-  if (service.hasAccess()) {
-    let response = service.homesData();
+  if (service.oauth.hasAccess()) {
+    let response = service.endpoints.homesData();
     Logger.log(JSON.stringify(response, null, 2));
   } else {
     Logger.log('Please follow this link to authorize the Netatmo API:\n' + service.getAuthorizationUrl());
@@ -97,7 +97,7 @@ function testNetatmoApi() {
 
 function authCallback(request) {
   let service = getNetatmoService();
-  let isAuthorized = service.handleCallback(request);
+  let isAuthorized = service.oauth.handleCallback(request);
   return HtmlService.createHtmlOutput((isAuthorized ? 'Success!' : 'Denied.') + ' You can close this tab.');
 }
 
