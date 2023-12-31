@@ -1,0 +1,19 @@
+{
+  "timeZone": "Europe/Paris",
+  "exceptionLogging": "STACKDRIVER",
+  "runtimeVersion": "V8",
+  "dependencies": {
+    "libraries": [
+      {
+        "userSymbol": "NetatmoLib",
+        "version": "0",
+        "libraryId": "14H4bqC5cfmrbQT43Zj5v0Z5zpGUUEE5g5X3LBfkSMlB_gjTsXWKVWx52",
+        "developmentMode": true
+      }
+    ]
+  },
+  "webapp": {
+    "executeAs": "USER_ACCESSING",
+    "access": "MYSELF"
+  }
+}
