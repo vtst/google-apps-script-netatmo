@@ -35,8 +35,8 @@ Before using the API, do the following steps:
    editor:
    ```js
    function logRedirectUri() {
-     var service = getNetatmoService();
-     Logger.log(service.getRedirectUri());
+     var service = NetatmoLib.createService({client_id: '', client_secret: '', scope: ''});
+     Logger.log(service.oauth.getRedirectUri());
    }
    ```
    This will display the redirect URI in the execution log panel. This URI
@@ -49,7 +49,32 @@ Before using the API, do the following steps:
    
 ### Using the API
 
-Here is a minimum code snippet illustrating how to use the API:
+For using the API, you need to call the function `createService` to create a
+`NetatmoService` object. The create service takes an object as argument, with
+parameter values. You must specify the parameters `client_id`, `client_secret` and
+`scope`. There are additional optional parameters, see the
+[source code](https://github.com/vtst/google-apps-script-netatmo/blob/main/lib/NetatmoService.js#L10) for their full list.
+
+The `NetatmoService` object has two main properties:
+- `NetatmoService.oauth`, which is the underlying `OAuth2Service`.
+   See the [full documentation](https://github.com/googleworkspace/apps-script-oauth2).
+- `NetatmoService.endpoints`, which includes one method per API endpoint.
+
+Here are examples of endpoint calls:
+```
+NetatmoService.endpoints.homesData();
+NetatmoService.endpoints.homeStatus({home_id: '123', device_types: ['BNS', 'NLG']});
+NetatmoService.endpoints.setState({}, {...});
+```
+
+For a full list of all endpoints, please checkout the
+[automatically generated documentation](https://script.google.com/macros/s/AKfycbykaCFNvi6WKjJ-N3Yan-ES-1WPehcOH3dkxZgttGrzt6uAWuXdpPP5FUDZvbi-Ezu2sQ/exec).
+
+## Examples
+
+### Minimal example
+
+Here is a minimal code snippet illustrating how to use the API:
 
 ```js
 function getNetatmoService() {
@@ -78,7 +103,7 @@ function authCallback(request) {
 
 function reset() {
   let service = getNetatmoService();
-  service.reset();
+  service.oauth.reset();
 }
 ```
 
@@ -87,6 +112,10 @@ in the script editor. At the first run, you will see an URL in the execution
 log. Visit this URL with your web browser to grant access to the Netatmo
 API. At the second run, you will the the JSON output returned by the API
 call.
+
+### Web App example
+
+
 
 
 
