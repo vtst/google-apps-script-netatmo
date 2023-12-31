@@ -115,7 +115,4 @@ call.
 
 ### Web App example
 
-
-
-
-
+You can find a full example of Web app in [this folder](https://github.com/vtst/google-apps-script-netatmo/tree/main/examples/webapp).
