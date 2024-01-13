@@ -3,52 +3,51 @@
 // const CLIENT_ID = '...';
 // const CLIENT_SECRET = '...';
 
-// ********************************************************************************
-// Utility function
-
-function include(file) {
-  let template = HtmlService.createTemplateFromFile(file);
-  return template.evaluate().getContent();
-}
+const APP_TITLE = 'Netatmo Web App example';
 
 // ********************************************************************************
 // Main function
 
+let netatmoService_ = null;
+
 function getNetatmoService() {
-  return NetatmoLib.createService({
-    client_id: CLIENT_ID,
-    client_secret: CLIENT_SECRET,
-    scope: 'read_magellan'
-  });
+  if (!netatmoService_) {
+    netatmoService_ = NetatmoLib.createService({
+      client_id: CLIENT_ID,
+      client_secret: CLIENT_SECRET,
+      scope: 'read_magellan write_magellan'
+    });
+  }
+  return netatmoService_;
 }
 
-function handleRequest(service, isAuthCallback) {
-  let template = HtmlService.createTemplateFromFile('MainPage');
+function oauth2Page(service, isAuthCallback) {
+  let template = HtmlService.createTemplateFromFile('OAuth2Page');
   template.service = service;
   template.callbackRedirectUrl = isAuthCallback ? PropertiesService.getUserProperties().getProperty('serviceUrl') : null;
+  return template.evaluate();
+}
+
+function explorerPage(e) {
+  let template = HtmlService.createTemplateFromFile('ExplorerPage');
+  template.data = getExplorerData(e.parameter.home_id);
   return template.evaluate();
 }
 
 // Entry point of the Web app.
 function doGet(e) {
   let service = getNetatmoService();
-  if (!service.oauth.hasAccess()) {
+  if (service.oauth.hasAccess()) {
+    return explorerPage(e);
+  } else {
     PropertiesService.getUserProperties().setProperty('serviceUrl', ScriptApp.getService().getUrl());
+    return oauth2Page(service, false);
   }
-  return handleRequest(service, false);
 }
 
 // Entry point for the completion of the OAuth2 workflow.
 function authCallback(request) {
   let service = getNetatmoService();
   service.oauth.handleCallback(request);
-  return handleRequest(service, true)
-}
-
-// ********************************************************************************
-// UI functions
-
-function logout() {
-  var service = getNetatmoService();
-  service.oauth.reset();
+  return oauth2Page(service, true)
 }

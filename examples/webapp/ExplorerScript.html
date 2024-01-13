@@ -1,0 +1,136 @@
+
+<script type="text/javascript">
+
+  const SERVICE_URL = '<?= ScriptApp.getService().getUrl(); ?>';
+
+  let DATA = <?!= JSON.stringify(data, null, 2) ?>;
+
+  function setLocation(url) {
+    window.top.location = url;
+  }
+
+  function logout(event) {
+    event.preventDefault();
+    event.stopPropagation();
+    let dialog = document.getElementById('logout-dialog');
+    dialog.showModal();
+    google.script.run.withSuccessHandler(() => {
+      setLocation(SERVICE_URL);
+    }).logout();
+  }
+
+  function showSnackbar(data) {
+    var snackbarElement = document.getElementById('snackbar');
+    snackbarElement.MaterialSnackbar.showSnackbar(data);
+  }
+
+  function switchToHome(event, homeId) {
+    event.preventDefault();
+    event.stopPropagation();
+    setLocation(SERVICE_URL + '?home_id=' + homeId)
+  }
+
+  function getDetails(element) {
+    let details = null;
+    while (element && !details) {
+      element = element.parentNode;
+      details = element.querySelector('.ntm-details');
+    }
+    return details ? details.textContent : null;
+  }
+
+  let detailsDialog = null;
+
+  function showDetailsDialog(details) {
+    if (!detailsDialog) {
+      detailsDialog = document.getElementById('details-dialog');
+      if (!detailsDialog.showModal) {
+        dialogPolyfill.registerDialog(detailsDialog);
+      }
+      detailsDialog.querySelector('.close').addEventListener('click', function() {
+        detailsDialog.close();
+      });
+    }
+    let pre = detailsDialog.querySelector('#ntm-details');
+    pre.textContent = details;
+    detailsDialog.showModal();
+  }
+
+  function showDetails(event) {
+    let details = getDetails(event.target);
+    if (details) {
+      showDetailsDialog(JSON.stringify(JSON.parse(details), null, 2));
+    }
+  }
+
+  // TODO Popup for error messages.
+
+  function setHomeState(homeState, handler) {
+    google.script.run.withSuccessHandler(response => {
+      handler(true);
+    }).withFailureHandler(response => {
+      handler(false);
+    }).setHomeState(homeState);
+  }
+
+  function setModuleState(event, moduleId) {
+    let module = DATA.modules[moduleId];
+    let checkbox = event.target;
+    let checked = checkbox.checked;
+    let materialSwitch = checkbox.parentElement.MaterialSwitch;
+    materialSwitch.disable();
+    setHomeState({
+      "id": '<?= data.home.id ?>',
+      "modules": [
+        {
+          "id": moduleId,
+          "on": checked,
+          "bridge": module.bridge
+        }
+      ]
+    }, success => {
+      if (success) {
+        module.on = checked;
+      } else {
+        if (module.on) materialSwitch.on(); else materialSwitch.off();
+        showSnackbar({
+          message: 'An error occurred while switching the module.',
+          timeout: 2000
+        });
+      }
+      materialSwitch.enable();
+    });
+  }
+
+  const ThermFpSetpointsByFp = <?!= JSON.stringify(ThermFpSetpointsByFp); ?>;
+
+  function setRoomSetpoint(event, roomId) {
+    let room = DATA.rooms[roomId];
+    let textbox = event.target;
+    let setpoint = ThermFpSetpointsByFp[textbox.value];
+    let materialTextfield = textbox.parentElement.MaterialTextfield;
+    materialTextfield.disable();
+    setHomeState({
+      "id": '<?= data.home.id ?>',
+      "rooms": [
+        {
+          "id": room.id,
+          "therm_setpoint_mode": setpoint.mode,
+          "therm_setpoint_fp": textbox.value
+        }
+      ]
+    }, success => {
+      if (success) {
+        room.therm_setpoint_fp = textbox.value;
+      } else {
+        textbox.value = room.therm_setpoint_fp;
+        showSnackbar({
+          message: 'An error occurred while changing the setpoint.',
+          timeout: 2000
+        });
+      }
+      materialTextfield.enable();
+    })
+  }
+
+</script>
